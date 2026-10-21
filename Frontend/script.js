@@ -6,7 +6,7 @@ const SPEC=[[/chest|heart|bp|palpit|सीने|দিল|বুকু/i,"Cardi
 const GIVE={"O-":["O-"],"O+":["O+","O-"],"A-":["A-","O-"],"A+":["A+","A-","O+","O-"],"B-":["B-","O-"],"B+":["B+","B-","O+","O-"],"AB-":["AB-","A-","B-","O-"],"AB+":["O+","O-","A+","A-","B+","B-","AB+","AB-"]};
 const NAV={patient:[["chat","Assistant"],["docs","Doctors"],["hosp","Hospitals"],["svc","Services"],["appts","Appointments"],["feed","Health"],["blood","Blood"]],doctor:[["dash","Dashboard"]],hospital:[["ref","Referrals"],["breq","Blood requests"]]};
 const STL={new:["Waiting for doctor","am"],accepted:["Accepted","ok"],completed:["Completed","te"],cancelled:["Declined or cancelled","ur"],live:["Live","ok"]};
-const S={role:null,name:"",tab:"",token:null,user_id:null,patient_id:null,doctor_id:null,hospital_id:null,approved:false,profile:null,loc:null,phone:"",lang:"en-IN",chat:[{w:"ai",t:"Hello, I’m the Horizon assistant. Tell me how you feel in your own words, speak, or upload a report. I suggest a specialty and verified doctors. I can’t diagnose."}],files:[],blobs:[],docs:[],hospitals:[],labs:[],articles:[],cities:[],appts:[],refs:[],reqs:[],qa:[],notes:[],bl:[],don:{on:false,g:"O+",mail:""},dt:"new",unread:0,quality:null};
+const S={role:null,name:"",tab:"",token:null,user_id:null,patient_id:null,doctor_id:null,hospital_id:null,approved:false,profile:null,loc:null,phone:"",lang:"en-IN",chat:[{w:"ai",t:"Hello, I’m the Blood Link assistant. Tell me how you feel in your own words, speak, or upload a report. I suggest a specialty and verified doctors. I can’t diagnose."}],files:[],blobs:[],docs:[],hospitals:[],labs:[],articles:[],cities:[],appts:[],refs:[],reqs:[],qa:[],notes:[],bl:[],don:{on:false,g:"O+",mail:""},dt:"new",unread:0,quality:null};
 const KEYS=["token","role","name","phone","user_id","patient_id","doctor_id","hospital_id","approved","profile","loc","lang","chat"];
 try{const d=JSON.parse(localStorage.getItem("hz")||"{}");KEYS.forEach(k=>{if(d[k]!==undefined)S[k]=d[k]})}catch(e){}
 const save=()=>{try{localStorage.setItem("hz",JSON.stringify(Object.fromEntries(KEYS.map(k=>[k,S[k]]))))}catch(e){}};
@@ -60,11 +60,11 @@ async function render(){
     await ensureCatalog(true).catch(()=>{});
     if(!S.profile)return onboard();
     shell();
-  }catch(e){toast(e.message||"Couldn’t reach the Horizon server. Start the backend on port 8000.")}
+  }catch(e){toast(e.message||"Couldn’t reach the Blood Link server. Start the backend on port 8000.")}
 }
 function login(){
   const R=[["patient","Patient","Find the right doctor"],["doctor","Doctor","Get verified, see requests"],["hospital","Hospital","Referrals and blood"]];
-  app.innerHTML=`<section class="hero"><div class="sunb"></div><div class="hills"></div><div class="hin"><div class="brand">Horizon</div><h1>Care that rises to meet you.</h1>
+  app.innerHTML=`<section class="hero"><div class="sunb"></div><div class="hills"></div><div class="hin"><div class="brand">Blood Link</div><h1>Every drop has a destination.</h1><p>Blood Link matches verified donors with the people and hospitals who need them, and rewards the donors who keep showing up.</p>
 <fieldset class="arches"><legend hidden>Choose your role</legend>${R.map((r,i)=>`<div class="role"><input type="radio" name="r" id="r${i}" value="${r[0]}" ${i?"":"checked"}><label for="r${i}"><b>${r[1]}</b><span class="mu">${r[2]}</span></label></div>`).join("")}</fieldset>
 <form class="fm" id="lf" novalidate><label class="l" for="nm">Full name</label><input id="nm" autocomplete="name" value="${esc(S.name||"")}"><label class="l" for="mb">Mobile number</label><input id="mb" type="tel" inputmode="numeric" autocomplete="tel" placeholder="10-digit number" value="${esc(S.phone||"")}">
 <div class="row" style="margin-top:12px"><button type="button" class="btn q s" id="lc">Share my location</button><span id="ls">${S.loc?"Location shared ✓":"Required"}</span></div><p class="err" id="er" role="alert"></p><button class="btn" id="go" style="width:100%">Log in</button></form></div></section>`;
@@ -104,13 +104,13 @@ function onboard(){
     if(p.age&&(p.age<1||p.age>120))return $("#er").textContent="Enter a valid age.";
     try{
       const data=await api("/auth/onboard",{method:"POST",json:{profile:p}});
-      applyUser(data);toast("Welcome to Horizon");render();
+      applyUser(data);toast("Welcome to Blood Link");render();
     }catch(err){$("#er").textContent=err.message}
   };
 }
 function shell(){
   const n=NAV[S.role];
-  app.innerHTML=`<header class="ph"><span class="brand">Horizon</span><svg class="ecg" viewBox="0 0 420 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 13H150l10-11 14 22 10-11H420"/></svg><span class="who"><button class="btn q s" id="lo">Log out</button><span>${esc(S.name)}</span></span></header><main id="v"></main><nav class="nav dock" aria-label="Main">${n.map(x=>`<button data-t="${x[0]}" ${S.tab===x[0]||(S.tab==="room"&&x[0]==="appts")?'aria-current="page"':""}>${x[1]}${x[0]==="blood"&&S.unread?` <span class="pill ur">${S.unread}</span>`:""}</button>`).join("")}</nav>`;
+  app.innerHTML=`<header class="ph"><span class="brand">Blood Link</span><svg class="ecg" viewBox="0 0 420 26" preserveAspectRatio="none" aria-hidden="true"><path d="M0 13H150l10-11 14 22 10-11H420"/></svg><span class="who"><button class="btn q s" id="lo">Log out</button><span>${esc(S.name)}</span></span></header><main id="v"></main><nav class="nav dock" aria-label="Main">${n.map(x=>`<button data-t="${x[0]}" ${S.tab===x[0]||(S.tab==="room"&&x[0]==="appts")?'aria-current="page"':""}>${x[1]}${x[0]==="blood"&&S.unread?` <span class="pill ur">${S.unread}</span>`:""}</button>`).join("")}</nav>`;
   $("#lo").onclick=logout;
   startLive();
   document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{hangup();go(b.dataset.t)});
@@ -237,7 +237,7 @@ async function blood(v){
 <label class="l"><input type="checkbox" id="cn" ${d.on?"checked":""} style="width:auto;min-height:0"> I agree to receive blood requests and share my details only when I accept</label><button class="btn" id="sv" style="margin-top:8px">${d.on?"Update availability":"Register as donor"}</button> ${d.on?`<button class="btn q" id="ps">Pause</button>`:""}</div>
 <p style="margin-top:12px"><a href="https://eraktkosh.mohfw.gov.in" target="_blank" rel="noopener" class="te"><b>Check blood bank stock on e-RaktKosh</b></a></p>
 <h3 style="margin-top:16px">Notifications</h3><div class="grid" style="margin-top:8px">${S.notes.length?S.notes.map(n=>`<article class="card"><b class="ur">${esc(n.u)} · ${esc(n.g)} needed</b><div>${esc(n.h)} · ${esc(n.c)} · ${n.n} unit(s)</div>${n.ok?`<span class="pill ok">You’re on your way. Desk: 0361-000-0000 (sample)</span>`:`<button class="btn s" data-y="${n.id}">I can donate</button>`}
-<details style="margin-top:8px"><summary class="mu">Email preview</summary><div class="mu" style="margin-top:6px;white-space:pre-line">To: ${esc(d.mail||"your email")}\nSubject: ${esc(n.u)} ${esc(n.g)} blood needed at ${esc(n.h)}\nA patient at ${esc(n.h)}, ${esc(n.c)}, needs ${n.n} unit(s). Open Horizon and tap “I can donate”.</div></details></article>`).join(""):`<div class="card mu">No requests right now.</div>`}</div>`;
+<details style="margin-top:8px"><summary class="mu">Email preview</summary><div class="mu" style="margin-top:6px;white-space:pre-line">To: ${esc(d.mail||"your email")}\nSubject: ${esc(n.u)} ${esc(n.g)} blood needed at ${esc(n.h)}\nA patient at ${esc(n.h)}, ${esc(n.c)}, needs ${n.n} unit(s). Open Blood Link and tap “I can donate”.</div></details></article>`).join(""):`<div class="card mu">No requests right now.</div>`}</div>`;
   $("#sv").onclick=async()=>{if(!$("#cn").checked)return toast("Please tick the consent box.");const m=$("#em").value.trim();if(!/^\S+@\S+\.\S+$/.test(m))return toast("Enter a valid email.");await api("/blood/donor",{method:"POST",json:{blood_group:$("#bg").value,email:m,active:true}});toast("You’re registered as a donor");blood(v)};
   const p=$("#ps");if(p)p.onclick=async()=>{await api("/blood/donor",{method:"POST",json:{blood_group:$("#bg").value,email:$("#em").value,active:false}});toast("Paused. No alerts will be sent.");blood(v)};
   v.querySelectorAll("[data-y]").forEach(b=>b.onclick=async()=>{await api(`/blood/notes/${b.dataset.y}/accept`,{method:"POST"});toast("The hospital has been told you’re coming");blood(v)});
